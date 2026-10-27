@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📺 Nova TV — Streaming Gratuito</title>
+<meta name="description" content="Televisión en vivo, películas, series, dramas y más. Streaming gratuito y legal.">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Nova TV","short_name":"NovaTV","start_url":".","display":"standalone","background_color":"%230a0a0f","theme_color":"%230a0a0f","icons":[{"src":"data:image/svg+xml,%253Csvg xmlns=%2527http://www.w3.org/2000/svg%2527 width=%2527192%2527 height=%2527192%2527%253E%253Crect width=%2527192%2527 height=%2527192%2527 fill=%2527%2523e50914%2527/%253E%253Ctext x=%252796%2527 y=%2527130%2527 font-size=%2527100%2527 text-anchor=%2527middle%2527 fill=%2527white%2527%253E%25F0%259F%2593%25BA%253C/text%253E%253C/svg%253E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e50914'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>📺</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+:root{
+  --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a2e; --card:#1e1e30;
+  --accent:#e50914; --accent2:#f6121d; --gold:#ffd700;
+  --text:#ffffff; --text2:#b3b3b3; --text3:#666666;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 8px 32px rgba(0,0,0,.6);
+  --transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  overflow-x:hidden;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+::selection{background:var(--accent);color:#fff}
+
+/* ══════════ NAVBAR ══════════ */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;gap:16px;
+  padding:12px 24px;
+  background:linear-gradient(180deg,rgba(10,10,15,.98) 0%,rgba(10,10,15,.85) 100%);
+  backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);
+  transition:var(--transition);
+}
+.navbar.scrolled{background:rgba(10,10,15,.98);box-shadow:0 4px 30px rgba(0,0,0,.5)}
+.logo{
+  font-size:1.6rem;font-weight:900;letter-spacing:-1px;
+  background:linear-gradient(135deg,var(--accent) 0%,#ff6b6b 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  cursor:pointer;white-space:nowrap;user-select:none;
+}
+.logo span{-webkit-text-fill-color:var(--text);font-weight:300}
+.nav-links{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-btn{
+  padding:8px 16px;border:none;background:transparent;color:var(--text2);
+  font-size:.85rem;font-weight:600;cursor:pointer;border-radius:20px;
+  white-space:nowrap;transition:var(--transition);font-family:inherit;
+}
+.nav-btn:hover,.nav-btn.active{color:#fff;background:rgba(229,9,20,.2)}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg3);border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;padding:8px 16px;min-width:200px;
+  transition:var(--transition);
+}
+.search-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(229,9,20,.15)}
+.search-box input{
+  background:transparent;border:none;outline:none;color:#fff;
+  font-size:.9rem;width:100%;font-family:inherit;
+}
+.search-box input::placeholder{color:var(--text3)}
+.fav-nav-btn{
+  position:relative;padding:8px 14px;border:none;background:transparent;
+  color:var(--text2);cursor:pointer;font-size:1.2rem;border-radius:8px;
+  transition:var(--transition);
+}
+.fav-nav-btn:hover{color:var(--accent);background:rgba(229,9,20,.1)}
+.fav-badge{
+  position:absolute;top:2px;right:2px;background:var(--accent);
+  color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+
+/* ══════════ HERO ══════════ */
+.hero{
+  position:relative;height:72vh;min-height:480px;
+  display:flex;align-items:flex-end;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  transition:opacity 1s ease;
+}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(10,10,15,.3) 0%,rgba(10,10,15,.6) 50%,var(--bg) 100%);
+}
+.hero-content{
+  position:relative;z-index:2;padding:0 48px 48px;max-width:700px;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--accent);color:#fff;padding:4px 12px;
+  border-radius:4px;font-size:.75rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;
+}
+.hero-title{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.1;
+  margin-bottom:12px;text-shadow:0 4px 20px rgba(0,0,0,.8);
+}
+.hero-meta{display:flex;gap:16px;margin-bottom:12px;font-size:.9rem;color:var(--text2)}
+.hero-meta .rating{color:var(--gold);font-weight:700}
+.hero-desc{
+  font-size:1rem;line-height:1.6;color:var(--text2);
+  margin-bottom:24px;display:-webkit-box;
+  -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 28px;border:none;border-radius:6px;
+  font-size:1rem;font-weight:700;cursor:pointer;
+  transition:var(--transition);font-family:inherit;
+}
+.btn-primary{background:#fff;color:#000}
+.btn-primary:hover{background:rgba(255,255,255,.8);transform:scale(1.05)}
+.btn-secondary{background:rgba(109,109,110,.7);color:#fff;backdrop-filter:blur(10px)}
+.btn-secondary:hover{background:rgba(109,109,110,.5);transform:scale(1.05)}
+.hero-dots{
+  position:absolute;bottom:20px;right:48px;display:flex;gap:8px;z-index:2;
+}
+.hero-dot{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);
+  cursor:pointer;transition:var(--transition);border:none;padding:0;
+}
+.hero-dot.active{background:var(--accent);width:24px;border-radius:4px}
+
+/* ══════════ SECCIONES ══════════ */
+.section{padding:24px 0 8px}
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 48px;margin-bottom:16px;
+}
+.section-title{
+  font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:10px;
+}
+.section-title .icon{font-size:1.5rem}
+.section-count{
+  background:var(--bg3);padding:2px 10px;border-radius:12px;
+  font-size:.75rem;color:var(--text2);font-weight:600;
+}
+.row-wrap{position:relative}
+.row{
+  display:flex;gap:14px;overflow-x:auto;padding:8px 48px 20px;
+  scroll-behavior:smooth;scrollbar-width:none;
+}
+.row::-webkit-scrollbar{display:none}
+.row-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:rgba(10,10,15,.8);color:#fff;font-size:1.2rem;
+  cursor:pointer;z-index:10;transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;backdrop-filter:blur(10px);
+}
+.row-wrap:hover .row-arrow{opacity:1}
+.row-arrow:hover{background:var(--accent);transform:translateY(-50%) scale(1.1)}
+.row-arrow.left{left:8px}
+.row-arrow.right{right:8px}
+
+/* ══════════ TARJETAS ══════════ */
+.card{
+  flex:0 0 200px;background:var(--card);border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;transition:var(--transition);
+  position:relative;border:1px solid rgba(255,255,255,.05);
+}
+.card:hover{transform:translateY(-8px) scale(1.03);box-shadow:var(--shadow);border-color:rgba(229,9,20,.3);z-index:5}
+.card:focus{outline:3px solid var(--accent);outline-offset:2px}
+.card-img{
+  width:100%;height:120px;object-fit:cover;display:block;
+  background:var(--bg3);
+}
+.card-img.placeholder{
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;background:linear-gradient(135deg,var(--bg3),var(--bg2));
+}
+.card-body{padding:12px}
+.card-title{
+  font-size:.85rem;font-weight:700;margin-bottom:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-meta{font-size:.72rem;color:var(--text3);display:flex;gap:6px;align-items:center}
+.card-badge{
+  position:absolute;top:8px;left:8px;padding:2px 8px;
+  border-radius:4px;font-size:.65rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;z-index:2;
+}
+.badge-live{background:var(--accent);color:#fff;animation:pulse 2s infinite}
+.badge-vod{background:rgba(0,0,0,.7);color:var(--gold);backdrop-filter:blur(5px)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.card-fav{
+  position:absolute;top:8px;right:8px;width:32px;height:32px;
+  border-radius:50%;border:none;background:rgba(0,0,0,.6);
+  color:#fff;font-size:.9rem;cursor:pointer;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:var(--transition);backdrop-filter:blur(5px);
+}
+.card:hover .card-fav{opacity:1}
+.card-fav.active{opacity:1;background:var(--accent)}
+.card-fav:hover{transform:scale(1.2)}
+
+/* ══════════ REPRODUCTOR ══════════ */
+.player-overlay{
+  position:fixed;inset:0;z-index:2000;background:#000;
+  display:none;flex-direction:column;
+}
+.player-overlay.active{display:flex}
+.player-container{position:relative;flex:1;display:flex;align-items:center;justify-content:center;background:#000}
+.player-container video{width:100%;height:100%;max-height:100vh;object-fit:contain}
+.player-loading{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+  background:rgba(0,0,0,.8);z-index:10;
+}
+.spinner{
+  width:56px;height:56px;border:4px solid rgba(255,255,255,.1);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.player-error{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+  background:rgba(0,0,0,.9);z-index:10;text-align:center;padding:24px;
+}
+.player-error.active{display:flex}
+.player-error-icon{font-size:4rem}
+.player-error-text{font-size:1.1rem;color:var(--text2);max-width:400px}
+.player-topbar{
+  position:absolute;top:0;left:0;right:0;z-index:20;
+  display:flex;align-items:center;gap:16px;
+  padding:16px 24px;
+  background:linear-gradient(180deg,rgba(0,0,0,.8),transparent);
+  transition:var(--transition);
+}
+.player-title{font-size:1.1rem;font-weight:700;flex:1;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.player-back{
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.1);color:#fff;font-size:1.1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);backdrop-filter:blur(10px);
+}
+.player-back:hover{background:var(--accent);transform:scale(1.1)}
+.player-controls{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:16px 24px 20px;
+  background:linear-gradient(0deg,rgba(0,0,0,.9),transparent);
+  transition:var(--transition);
+}
+.player-overlay.hide-ui .player-topbar,
+.player-overlay.hide-ui .player-controls{opacity:0;pointer-events:none}
+.progress-bar{
+  width:100%;height:5px;background:rgba(255,255,255,.2);
+  border-radius:3px;cursor:pointer;position:relative;margin-bottom:12px;
+  transition:height .2s;
+}
+.progress-bar:hover{height:8px}
+.progress-fill{
+  height:100%;background:var(--accent);border-radius:3px;
+  position:relative;transition:width .1s linear;
+}
+.progress-fill::after{
+  content:'';position:absolute;right:-6px;top:50%;
+  transform:translateY(-50%);width:12px;height:12px;
+  background:var(--accent);border-radius:50%;
+  opacity:0;transition:opacity .2s;
+}
+.progress-bar:hover .progress-fill::after{opacity:1}
+.progress-time{
+  display:flex;justify-content:space-between;font-size:.75rem;
+  color:var(--text2);margin-bottom:8px;font-variant-numeric:tabular-nums;
+}
+.controls-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl-btn{
+  width:40px;height:40px;border-radius:8px;border:none;
+  background:transparent;color:#fff;font-size:1.1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);position:relative;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,.15);transform:scale(1.1)}
+.ctrl-btn.main{width:52px;height:52px;background:#fff;color:#000;border-radius:50%}
+.ctrl-btn.main:hover{background:var(--accent);color:#fff;transform:scale(1.15)}
+.ctrl-btn.active{background:var(--accent)}
+.ctrl-sep{width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px}
+.ctrl-label{
+  font-size:.75rem;color:var(--text2);padding:4px 8px;
+  background:rgba(255,255,255,.1);border-radius:4px;cursor:pointer;
+  border:none;font-family:inherit;transition:var(--transition);white-space:nowrap;
+}
+.ctrl-label:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* Volumen */
+.volume-group{display:flex;align-items:center;gap:8px}
+.volume-slider-wrap{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.1);border-radius:20px;padding:4px 12px;
+}
+.volume-icon{font-size:1rem;cursor:pointer;user-select:none}
+input[type=range].volume-slider{
+  -webkit-appearance:none;width:100px;height:4px;
+  background:rgba(255,255,255,.2);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range].volume-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(229,9,20,.5);
+}
+.volume-pct{font-size:.7rem;color:var(--gold);font-weight:700;min-width:36px;text-align:right}
+.volume-slider-wrap.boosted input[type=range].volume-slider::-webkit-slider-thumb{background:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.6)}
+
+/* Menús desplegables */
+.ctrl-menu{
+  position:absolute;bottom:52px;right:0;
+  background:rgba(20,20,30,.95);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:8px;min-width:180px;
+  backdrop-filter:blur(20px);display:none;z-index:30;
+  box-shadow:var(--shadow);
+}
+.ctrl-menu.open{display:block;animation:menuIn .2s ease}
+@keyframes menuIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ctrl-menu-title{
+  font-size:.7rem;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:1px;
+  padding:6px 10px 4px;
+}
+.menu-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:8px 10px;border:none;background:transparent;color:var(--text2);
+  font-size:.82rem;cursor:pointer;border-radius:6px;
+  transition:var(--transition);font-family:inherit;text-align:left;
+}
+.menu-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.menu-item.active{color:var(--accent);font-weight:700}
+.menu-item .check{margin-left:auto;font-size:.7rem}
+
+/* ══════════ MODAL INFO ══════════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:1500;background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);padding:24px;
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--bg2);border-radius:16px;max-width:560px;width:100%;
+  max-height:85vh;overflow-y:auto;position:relative;
+  border:1px solid rgba(255,255,255,.08);animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal-close{
+  position:absolute;top:16px;right:16px;width:36px;height:36px;
+  border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;
+  font-size:1rem;cursor:pointer;z-index:2;transition:var(--transition);
+}
+.modal-close:hover{background:var(--accent);transform:rotate(90deg)}
+.modal-banner{
+  width:100%;height:220px;object-fit:cover;
+  border-radius:16px 16px 0 0;
+}
+.modal-banner.placeholder{
+  display:flex;align-items:center;justify-content:center;
+  font-size:4rem;background:linear-gradient(135deg,var(--bg3),var(--bg2));
+}
+.modal-body{padding:24px}
+.modal-title{font-size:1.5rem;font-weight:900;margin-bottom:8px}
+.modal-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;font-size:.85rem;color:var(--text2)}
+.modal-desc{font-size:.95rem;line-height:1.7;color:var(--text2);margin-bottom:20px}
+.modal-url{
+  font-size:.7rem;color:var(--text3);word-break:break-all;
+  background:var(--bg3);padding:8px 12px;border-radius:6px;
+  margin-bottom:16px;font-family:monospace;
+}
+
+/* ══════════ BUSCADOR ══════════ */
+.search-results{
+  padding:100px 48px 48px;min-height:100vh;
+}
+.search-results.hidden{display:none}
+.search-header{margin-bottom:24px}
+.search-header h2{font-size:1.5rem;font-weight:800}
+.search-header p{color:var(--text2);font-size:.9rem;margin-top:4px}
+.no-results{
+  text-align:center;padding:80px 24px;color:var(--text3);
+}
+.no-results-icon{font-size:4rem;margin-bottom:16px}
+
+/* ══════════ FAVORITOS ══════════ */
+.favorites-page{padding:100px 48px 48px;min-height:100vh}
+.favorites-page.hidden{display:none}
+.fav-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:16px;margin-top:20px;
+}
+
+/* ══════════ LOADING SCREEN ══════════ */
+.app-loading{
+  position:fixed;inset:0;z-index:3000;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity .5s;
+}
+.app-loading.hidden{opacity:0;pointer-events:none}
+.app-loading-logo{
+  font-size:3rem;font-weight:900;
+  background:linear-gradient(135deg,var(--accent),#ff6b6b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:pulse 2s infinite;
+}
+.app-loading-bar{
+  width:200px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;
+}
+.app-loading-fill{
+  height:100%;background:var(--accent);border-radius:2px;
+  transition:width .3s ease;width:0%;
+}
+.app-loading-text{font-size:.85rem;color:var(--text3)}
+
+/* ══════════ TOAST ══════════ */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:rgba(20,20,30,.95);border:1px solid rgba(255,255,255,.1);
+  color:#fff;padding:12px 24px;border-radius:12px;font-size:.9rem;
+  z-index:4000;transition:transform .3s ease;backdrop-filter:blur(20px);
+  display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ══════════ FOOTER ══════════ */
+.footer{
+  padding:40px 48px;margin-top:40px;
+  border-top:1px solid rgba(255,255,255,.06);
+  text-align:center;color:var(--text3);font-size:.82rem;
+}
+.footer a{color:var(--text2);text-decoration:none}
+.footer a:hover{color:var(--accent)}
+.footer-sources{margin-top:12px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+/* ══════════ RESPONSIVE ══════════ */
+@media(max-width:1024px){
+  .section-header,.row{padding-left:24px;padding-right:24px}
+  .hero-content{padding:0 24px 40px}
+  .hero-dots{right:24px}
+  .search-results,.favorites-page{padding-left:24px;padding-right:24px}
+}
+@media(max-width:768px){
+  .navbar{flex-wrap:wrap;gap:8px;padding:10px 16px}
+  .logo{font-size:1.2rem}
+  .search-box{order:3;width:100%;min-width:unset}
+  .hero{height:60vh;min-height:400px}
+  .hero-content{padding:0 16px 32px}
+  .hero-title{font-size:1.6rem}
+  .hero-desc{-webkit-line-clamp:2}
+  .section-header,.row{padding-left:16px;padding-right:16px}
+  .card{flex:0 0 160px}
+  .card-img{height:90px}
+  .row-arrow{display:none}
+  .search-results,.favorites-page{padding-left:16px;padding-right:16px}
+  .fav-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .controls-row{gap:4px}
+  .ctrl-btn{width:36px;height:36px;font-size:.95rem}
+  .ctrl-btn.main{width:44px;height:44px}
+  input[type=range].volume-slider{width:70px}
+  .volume-pct{display:none}
+  .player-title{font-size:.9rem}
+  .footer{padding:32px 16px}
+}
+@media(max-width:480px){
+  .card{flex:0 0 130px}
+  .card-img{height:75px}
+  .card-body{padding:8px}
+  .card-title{font-size:.75rem}
+  .hero-actions .btn{padding:10px 20px;font-size:.9rem}
+  .ctrl-label{display:none}
+}
+
+/* ══════════ TV / D-PAD ══════════ */
+@media(min-width:1200px){
+  .card:focus{transform:translateY(-8px) scale(1.05);box-shadow:var(--shadow)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="app-loading" id="appLoading">
+  <div class="app-loading-logo">📺 Nova TV</div>
+  <div class="app-loading-bar"><div class="app-loading-fill" id="loadingFill"></div></div>
+  <div class="app-loading-text" id="loadingText">Iniciando...</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="logo" onclick="showHome()">📺 Nova<span>TV</span></div>
+  <div class="nav-links" id="navLinks"></div>
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar canales, películas..." autocomplete="off">
+  </div>
+  <button class="fav-nav-btn" onclick="showFavorites()" title="Favoritos">
+    ❤️<span class="fav-badge" id="favBadge">0</span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-content">
+    <div class="hero-badge" id="heroBadge">🔴 EN VIVO</div>
+    <h1 class="hero-title" id="heroTitle"></h1>
+    <div class="hero-meta" id="heroMeta"></div>
+    <p class="hero-desc" id="heroDesc"></p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="heroPlayBtn">▶ Reproducir</button>
+      <button class="btn btn-secondary" id="heroInfoBtn">ℹ Más Info</button>
+    </div>
+  </div>
+  <div class="hero-dots" id="heroDots"></div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main id="mainContent"></main>
+
+<!-- RESULTADOS DE BÚSQUEDA -->
+<div class="search-results hidden" id="searchResults">
+  <div class="search-header">
+    <h2 id="searchTitle">Resultados</h2>
+    <p id="searchCount"></p>
+  </div>
+  <div class="row" id="searchRow" style="padding:0;flex-wrap:wrap"></div>
+</div>
+
+<!-- FAVORITOS -->
+<div class="favorites-page hidden" id="favoritesPage">
+  <h2 style="font-size:1.5rem;font-weight:800">❤️ Mis Favoritos</h2>
+  <p style="color:var(--text2);font-size:.9rem;margin-top:4px" id="favCount"></p>
+  <div class="fav-grid" id="favGrid"></div>
+</div>
+
+<!-- REPRODUCTOR -->
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-container" id="playerContainer">
+    <video id="videoPlayer" playsinline></video>
+    <div class="player-loading" id="playerLoading">
+      <div class="spinner"></div>
+      <div style="color:var(--text2);font-size:.9rem">Cargando stream...</div>
+    </div>
+    <div class="player-error" id="playerError">
+      <div class="player-error-icon">📡</div>
+      <div class="player-error-text" id="playerErrorText">Error al cargar el stream. Intenta con otra fuente.</div>
+      <button class="btn btn-primary" onclick="closePlayer()">← Volver al catálogo</button>
+    </div>
+
+    <!-- Topbar -->
+    <div class="player-topbar">
+      <button class="player-back" onclick="closePlayer()">←</button>
+      <div class="player-title" id="playerTitle"></div>
+    </div>
+
+    <!-- Controles -->
+    <div class="player-controls" id="playerControls">
+      <div class="progress-time">
+        <span id="timeCurrent">0:00</span>
+        <span id="timeDuration">0:00</span>
+      </div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn main" id="playPauseBtn" title="Play/Pausa (Espacio)">▶</button>
+        <button class="ctrl-btn" id="muteBtn" title="Silencio (M)">🔊</button>
+        <div class="volume-group">
+          <div class="volume-slider-wrap" id="volumeWrap">
+            <span class="volume-icon" id="volumeIcon">🔊</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="500" value="100">
+            <span class="volume-pct" id="volumePct">100%</span>
+          </div>
+        </div>
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-btn" id="settingsBtn" title="Calidad">⚙️</button>
+        <button class="ctrl-btn" id="audioBtn" title="Pistas de Audio">🎵</button>
+        <button class="ctrl-btn" id="subsBtn" title="Subtítulos">💬</button>
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-btn" id="fullscreenBtn" title="Pantalla Completa (F)">⛶</button>
+        <span style="flex:1"></span>
+        <span class="ctrl-label" id="qualityLabel" style="display:none">AUTO</span>
+      </div>
+      <!-- Menús -->
+      <div class="ctrl-menu" id="qualityMenu"></div>
+      <div class="ctrl-menu" id="audioMenu"></div>
+      <div class="ctrl-menu" id="subsMenu"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INFO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBanner"></div>
+    <div class="modal-body">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-meta" id="modalMeta"></div>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-url" id="modalUrl"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="modalPlayBtn">▶ Reproducir</button>
+        <button class="btn btn-secondary" id="modalFavBtn">❤️ Favorito</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>📺 <strong>Nova TV</strong> — Streaming gratuito y legal de contenido de dominio público y fuentes abiertas.</p>
+  <p style="margin-top:8px">Fuentes: IPTV-Org · TDTChannels · Free-TV · Public Domain Torrents · Internet Archive</p>
+  <div class="footer-sources">
+    <a href="https://github.com/iptv-org/iptv" target="_blank">IPTV-Org</a>
+    <a href="https://github.com/LaQuay/TDTChannels" target="_blank">TDTChannels</a>
+    <a href="https://github.com/Free-TV/IPTV" target="_blank">Free-TV</a>
+    <a href="https://publicdomaintorrents.info" target="_blank">Public Domain Movies</a>
+    <a href="https://archive.org" target="_blank">Internet Archive</a>
+  </div>
+  <p style="margin-top:16px;font-size:.75rem">© 2026 Nova TV. Todos los derechos de las fuentes pertenecen a sus respectivos propietarios.</p>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   NOVA TV — Lógica Principal
+   ═══════════════════════════════════════════════════════════ */
+
+// ─── Estado Global ───
+const state = {
+  allContent: [],
+  favorites: JSON.parse(localStorage.getItem('nova_favs') || '[]'),
+  heroItems: [],
+  heroIndex: 0,
+  heroTimer: null,
+  currentPlaying: null,
+  hls: null,
+  audioCtx: null,
+  gainNode: null,
+  compressor: null,
+  sourceNode: null,
+  isBoosted: false,
+  searchQuery: '',
+  activeMenu: null,
+  hideUITimer: null,
+};
+
+// ─── Fuentes de Datos ───
+const SOURCES = [
+  {
+    name: 'IPTV-Org Global',
+    url: 'https://iptv-org.github.io/iptv/index.m3u',
+    category: 'live',
+    emoji: '🌍',
+    section: 'Televisión en Vivo',
+  },
+  {
+    name: 'IPTV-Org Español',
+    url: 'https://iptv-org.github.io/iptv/languages/spa.m3u',
+    category: 'live',
+    emoji: '🇪🇸',
+    section: 'Canales en Español',
+  },
+  {
+    name: 'IPTV-Org Venezuela',
+    url: 'https://iptv-org.github.io/iptv/countries/ve.m3u',
+    category: 'live',
+    emoji: '🇻🇪',
+    section: 'Canales de Venezuela',
+  },
+  {
+    name: 'TDTChannels España',
+    url: 'https://raw.githubusercontent.com/LaQuay/TDTChannels-lists/master/tv.m3u',
+    category: 'live',
+    emoji: '📡',
+    section: 'Televisión en Vivo',
+  },
+  {
+    name: 'Free-TV IPTV',
+    url: 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u',
+    category: 'live',
+    emoji: '📺',
+    section: 'Canales FAST',
+  },
+];
+
+// ─── Contenido VOD (Películas/Series de Dominio Público) ───
+const VOD_CONTENT = [
+  { title: 'Night of the Living Dead', url: 'https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4', logo: '', group: 'Películas Clásicas', section: 'Películas', type: 'movie', year: 1968, desc: 'Clásico de terror de George A. Romero. Un grupo de personas se refugia en una casa de campo mientras los muertos vivientes atacan.', emoji: '🧟' },
+  { title: 'Plan 9 from Outer Space', url: 'https://archive.org/download/Plan_9_from_Outer_Space_1959/Plan_9_from_Outer_Space_1959_512kb.mp4', logo: '', group: 'Películas Clásicas', section: 'Películas', type: 'movie', year: 1957, desc: 'Considerada la peor película de la historia, esta obra de Ed Wood es un clásico de culto del cine de ciencia ficción.', emoji: '👽' },
+  { title: 'The General', url: 'https://archive.org/download/The_General_Buster_Keaton/The_General_512kb.mp4', logo: '', group: 'Cine Mudo', section: 'Películas', type: 'movie', year: 1926, desc: 'Obra maestra del cine mudo protagonizada por Buster Keaton. Un conductor de trenes intenta recuperar su locomotora robada.', emoji: '🚂' },
+  { title: 'Charlie Chaplin - The Kid', url: 'https://archive.org/download/TheKid1921/TheKid1921_512kb.mp4', logo: '', group: 'Cine Mudo', section: 'Películas', type: 'movie', year: 1921, desc: 'El Chico, una de las películas más emotivas de Charles Chaplin, donde un vagabundo cuida a un niño abandonado.', emoji: '🎩' },
+  { title: 'Nosferatu', url: 'https://archive.org/download/Nosferatu_201605/Nosferatu_512kb.mp4', logo: '', group: 'Cine Mudo', section: 'Películas', type: 'movie', year: 1922, desc: 'Adaptación no autorizada de Drácula de Bram Stoker. Una obra maestra del expresionismo alemán dirigida por F.W. Murnau.', emoji: '🧛' },
+  { title: 'Metropolis', url: 'https://archive.org/download/Metropolis_201605/Metropolis_512kb.mp4', logo: '', group: 'Cine Mudo', section: 'Películas', type: 'movie', year: 1927, desc: 'Visionaria película de Fritz Lang sobre una ciudad futurista dividida entre obreros y élite. Obra maestra del cine.', emoji: '🏙️' },
+  { title: 'The Cabinet of Dr. Caligari', url: 'https://archive.org/download/The_Cabinet_Of_Dr_Caligari/The_Cabinet_Of_Dr_Caligari_512kb.mp4', logo: '', group: 'Cine Mudo', section: 'Películas', type: 'movie', year: 1920, desc: 'Pionera del cine expresionista alemán. Un hipnotizador usa a un sonámbulo para cometer asesinatos.', emoji: '🎭' },
+  { title: 'D.O.A.', url: 'https://archive.org/download/DOA_1949/DOA_1949_512kb.mp4', logo: '', group: 'Film Noir', section: 'Películas', type: 'movie', year: 1949, desc: 'Un hombre es envenenado y tiene pocas horas de vida para encontrar a su asesino. Clásico del cine negro.', emoji: '🔍' },
+  { title: 'Detour', url: 'https://archive.org/download/Detour/Detour_512kb.mp4', logo: '', group: 'Film Noir', section: 'Películas', type: 'movie', year: 1945, desc: 'Un pianista de Nueva York viaja a Los Ángeles y se ve envuelto en una trama de crimen y engaño.', emoji: '🎹' },
+  { title: 'His Girl Friday', url: 'https://archive.org/download/his_girl_friday/his_girl_friday_512kb.mp4', logo: '', group: 'Comedia Clásica', section: 'Películas', type: 'movie', year: 1940, desc: 'Comedia romántica con Cary Grant y Rosalind Russell. Un editor de periódico intenta reconquistar a su ex esposa.', emoji: '📰' },
+  { title: 'The Philadelphia Story', url: 'https://archive.org/download/The_Philadelphia_Story/The_Philadelphia_Story_512kb.mp4', logo: '', group: 'Comedia Clásica', section: 'Películas', type: 'movie', year: 1940, desc: 'Katharine Hepburn, Cary Grant y James Stewart en esta comedia romántica sobre una boda inminente.', emoji: '💍' },
+  { title: 'Sherlock Holmes - Dressed to Kill', url: 'https://archive.org/download/DressedToKill1946/DressedToKill1946_512kb.mp4', logo: '', group: 'Misterio', section: 'Películas', type: 'movie', year: 1946, desc: 'Basil Rathbone como el legendario detective Sherlock Holmes en uno de sus casos más intrigantes.', emoji: '🔎' },
+  { title: 'The Lost World', url: 'https://archive.org/download/TheLostWorld1925/TheLostWorld1925_512kb.mp4', logo: '', group: 'Aventura', section: 'Películas', type: 'movie', year: 1925, desc: 'Primera adaptación cinematográfica de la novela de Arthur Conan Doyle sobre dinosaurios en una meseta perdida.', emoji: '🦕' },
+  { title: 'White Zombie', url: 'https://archive.org/download/WhiteZombie1932/WhiteZombie1932_512kb.mp4', logo: '', group: 'Terror Clásico', section: 'Películas', type: 'movie', year: 1932, desc: 'Bela Lugosi protagoniza esta primera película de zombies de la historia del cine.', emoji: '🧟‍♂️' },
+  { title: 'Carnival of Souls', url: 'https://archive.org/download/Carnival_of_Souls/Carnival_of_Souls_512kb.mp4', logo: '', group: 'Terror Clásico', section: 'Películas', type: 'movie', year: 1962, desc: 'Una mujer sobrevive a un accidente automovilístico pero empieza a tener visiones extrañas.', emoji: '👻' },
+  { title: 'The Little Shop of Horrors', url: 'https://archive.org/download/The_Little_Shop_of_Horrors/The_Little_Shop_of_Horrors_512kb.mp4', logo: '', group: 'Comedia Terror', section: 'Películas', type: 'movie', year: 1960, desc: 'Comedia de terror de Roger Corman sobre una planta carnívora con sed de sangre.', emoji: '🌱' },
+  { title: 'Speed Racer - Ep.1', url: 'https://archive.org/download/SpeedRacerEp01/SpeedRacerEp01_512kb.mp4', logo: '', group: 'Anime Clásico', section: 'Series y Anime', type: 'series', year: 1967, desc: 'El primer episodio del clásico anime de carreras que cautivó al mundo.', emoji: '🏎️' },
+  { title: 'Astro Boy - Ep.1', url: 'https://archive.org/download/AstroBoyEp01/AstroBoyEp01_512kb.mp4', logo: '', group: 'Anime Clásico', section: 'Series y Anime', type: 'series', year: 1963, desc: 'El primer episodio del pionero anime de Osamu Tezuka sobre un robot con alma humana.', emoji: '🤖' },
+  { title: 'Kimba the White Lion - Ep.1', url: 'https://archive.org/download/KimbaTheWhiteLionEp01/KimbaTheWhiteLionEp01_512kb.mp4', logo: '', group: 'Anime Clásico', section: 'Series y Anime', type: 'series', year: 1965, desc: 'El primer episodio del clásico anime sobre un cachorro de león blanco que lidera la selva.', emoji: '🦁' },
+  { title: 'Gigantor - Ep.1', url: 'https://archive.org/download/GigantorEp01/GigantorEp01_512kb.mp4', logo: '', group: 'Anime Clásico', section: 'Series y Anime', type: 'series', year: 1963, desc: 'El primer episodio del anime pionero sobre un robot gigante controlado por un niño.', emoji: '🦾' },
+  { title: 'Why We Fight - Ep.1', url: 'https://archive.org/download/WhyWeFightEp1/WhyWeFightEp1_512kb.mp4', logo: '', group: 'Documentales', section: 'Música / Documentales', type: 'documentary', year: 1943, desc: 'Serie documental de Frank Capra sobre la Segunda Guerra Mundial.', emoji: '📽️' },
+  { title: 'The World at War - Ep.1', url: 'https://archive.org/download/TheWorldAtWarEp01/TheWorldAtWarEp01_512kb.mp4', logo: '', group: 'Documentales', section: 'Música / Documentales', type: 'documentary', year: 1973, desc: 'Episodio 1 de la aclamada serie documental sobre la Segunda Guerra Mundial.', emoji: '🌍' },
+  { title: 'NASA - Apollo 11 Launch', url: 'https://archive.org/download/Apollo_11_Launch/Apollo_11_Launch_512kb.mp4', logo: '', group: 'Ciencia', section: 'Música / Documentales', type: 'documentary', year: 1969, desc: 'Footage histórico del lanzamiento de la misión Apollo 11 a la Luna.', emoji: '🚀' },
+  { title: 'The Mechanical Universe', url: 'https://archive.org/download/MechanicalUniverseEp01/MechanicalUniverseEp01_512kb.mp4', logo: '', group: 'Ciencia', section: 'Música / Documentales', type: 'documentary', year: 1985, desc: 'Serie educativa de física de Caltech. Episodio 1: Introducción a la mecánica.', emoji: '⚛️' },
+  { title: 'Jazz Concert - Live', url: 'https://archive.org/download/JazzConcertLive/JazzConcertLive_512kb.mp4', logo: '', group: 'Conciertos', section: 'Música / Documentales', type: 'music', year: 1950, desc: 'Concierto de jazz en vivo de los años 50.', emoji: '🎷' },
+  { title: 'Classical Music Performance', url: 'https://archive.org/download/ClassicalPerformance/ClassicalPerformance_512kb.mp4', logo: '', group: 'Conciertos', section: 'Música / Documentales', type: 'music', year: 1960, desc: 'Interpretación clásica de obras maestras de la música.', emoji: '🎻' },
+];
+
+// ─── CORS Proxies ───
+const CORS_PROXIES = [
+  (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => url,
+];
+
+// ─── Utilidades ───
+const $ = (id) => document.getElementById(id);
+const esc = (s) => { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; };
+const isFav = (id) => state.favorites.some((f) => f.id === id);
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function setLoading(pct, text) {
+  $('loadingFill').style.width = pct + '%';
+  if (text) $('loadingText').textContent = text;
+}
+
+// ─── Parseador M3U ───
+function parseM3U(content, source) {
+  const items = [];
+  const lines = content.split('\n');
+  let meta = {};
+  for (let line of lines) {
+    line = line.trim();
+    if (line.startsWith('#EXTINF:')) {
+      meta = { section: source.section, source: source.name, emoji: source.emoji };
+      const attrs = line.match(/([a-zA-Z-]+)="([^"]*)"/g);
+      if (attrs) attrs.forEach((a) => { const [k, v] = a.split('='); meta[k.replace(/"/g, '')] = v.replace(/"/g, ''); });
+      const commaIdx = line.lastIndexOf(',');
+      if (commaIdx !== -1) meta.title = line.substring(commaIdx + 1).trim();
+      meta.logo = meta.logo || meta.tvgLogo || '';
+      meta.group = meta.groupTitle || 'General';
+    } else if (line && !line.startsWith('#')) {
+      if (meta.title) {
+        items.push({
+          id: 'src_' + source.name.replace(/\W/g, '') + '_' + items.length,
+          title: meta.title,
+          url: line,
+          logo: meta.logo || '',
+          group: meta.group || 'General',
+          section: meta.section || source.section,
+          source: meta.source,
+          emoji: meta.emoji || '📺',
+          type: 'live',
+          desc: `Canal de televisión en vivo. Fuente: ${meta.source}. Categoría: ${meta.group}.`,
+        });
+      }
+      meta = {};
+    }
+  }
+  return items;
+}
+
+// ─── Cargar Fuentes ───
+async function fetchWithFallback(url) {
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const res = await fetch(proxy(url));
+      if (res.ok) return await res.text();
+    } catch (e) { /* siguiente proxy */ }
+  }
+  throw new Error('No se pudo cargar: ' + url);
+}
+
+async function loadAllSources() {
+  const total = SOURCES.length;
+  let done = 0;
+  const allItems = [];
+
+  VOD_CONTENT.forEach((v, i) => {
+    allItems.push({ ...v, id: 'vod_' + i, type: 'vod' });
+  });
+  setLoading(15, 'Cargando contenido VOD...');
+
+  const promises = SOURCES.map(async (src) => {
+    try {
+      const text = await fetchWithFallback(src.url);
+      const parsed = parseM3U(text, src);
+      allItems.push(...parsed);
+    } catch (e) {
+      console.warn('Error cargando', src.name, e);
+    }
+    done++;
+    setLoading(15 + (done / total) * 75, `Cargando ${src.name}...`);
+  });
+
+  await Promise.all(promises);
+  state.allContent = allItems;
+  setLoading(100, '¡Listo!');
+  setTimeout(() => $('appLoading').classList.add('hidden'), 500);
+}
+
+// ─── Agrupar por Secciones ───
+function getSections() {
+  const sections = {};
+  state.allContent.forEach((item) => {
+    const sec = item.section || 'Otros';
+    if (!sections[sec]) sections[sec] = [];
+    sections[sec].push(item);
+  });
+  return sections;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDERIZADO DE UI
+   ═══════════════════════════════════════════════════════════ */
+
+function cardHTML(item) {
+  const fav = isFav(item.id);
+  const img = item.logo
+    ? `<img class="card-img" src="${esc(item.logo)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img placeholder>${item.emoji||'📺'}</div>'">`
+    : `<div class="card-img placeholder">${item.emoji || '📺'}</div>`;
+  const badge = item.type === 'live'
+    ? `<div class="card-badge badge-live">LIVE</div>`
+    : `<div class="card-badge badge-vod">${esc(item.group || 'VOD')}</div>`;
+  return `
+    <div class="card" tabindex="0" data-id="${item.id}" onclick="openPlayerById('${item.id}')" onkeydown="handleCardKey(event,'${item.id}')">
+      ${badge}
+      <button class="card-fav ${fav ? 'active' : ''}" onclick="event.stopPropagation();toggleFav('${item.id}')" title="Favorito">${fav ? '❤️' : '🤍'}</button>
+      ${img}
+      <div class="card-body">
+        <div class="card-title">${esc(item.title)}</div>
+        <div class="card-meta"><span>${esc(item.source || item.group || '')}</span></div>
+      </div>
+    </div>`;
+}
+
+function handleCardKey(e, id) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayerById(id); }
+}
+
+function renderRow(sectionName, items) {
+  if (!items.length) return '';
+  const emoji = items[0]?.emoji || '📂';
+  return `
+    <div class="section" id="sec_${sectionName.replace(/\W/g, '')}">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">${emoji}</span> ${esc(sectionName)}</div>
+        <span class="section-count">${items.length}</span>
+      </div>
+      <div class="row-wrap">
+        <button class="row-arrow left" onclick="scrollRow(this, -1)">‹</button>
+        <div class="row">${items.map(cardHTML).join('')}</div>
+        <button class="row-arrow right" onclick="scrollRow(this, 1)">›</button>
+      </div>
+    </div>`;
+}
+
+function scrollRow(btn, dir) {
+  const row = btn.parentElement.querySelector('.row');
+  row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: 'smooth' });
+}
+
+function renderNav() {
+  const sections = getSections();
+  const names = Object.keys(sections);
+  $('navLinks').innerHTML = names.map((n) =>
+    `<button class="nav-btn" onclick="scrollToSection('${n.replace(/\W/g, '')}')">${esc(n)}</button>`
+  ).join('');
+}
+
+function scrollToSection(id) {
+  showHome();
+  setTimeout(() => {
+    const el = $('sec_' + id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+function renderHome() {
+  const sections = getSections();
+  const priority = ['Televisión en Vivo', 'Canales de Venezuela', 'Canales en Español', 'Películas', 'Series y Anime', 'Canales FAST', 'Música / Documentales'];
+  const sorted = Object.entries(sections).sort((a, b) => {
+    const ia = priority.indexOf(a[0]); const ib = priority.indexOf(b[0]);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  $('mainContent').innerHTML = sorted.map(([name, items]) => renderRow(name, items)).join('');
+  renderNav();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════════════════════════ */
+
+function pickHeroItems() {
+  const live = state.allContent.filter((i) => i.type === 'live');
+  const vod = state.allContent.filter((i) => i.type === 'vod');
+  const shuffled = [...live].sort(() => Math.random() - 0.5).slice(0, 5);
+  if (shuffled.length < 3) shuffled.push(...vod.sort(() => Math.random() - 0.5).slice(0, 3));
+  state.heroItems = shuffled;
+  state.heroIndex = 0;
+}
+
+function renderHero() {
+  if (!state.heroItems.length) return;
+  const item = state.heroItems[state.heroIndex];
+  $('heroBadge').textContent = item.type === 'live' ? '🔴 EN VIVO' : `🎬 ${item.group || 'PELÍCULA'}`;
+  $('heroTitle').textContent = item.title;
+  $('heroMeta').innerHTML = `
+    <span class="rating">★ ${item.type === 'live' ? 'TV' : (item.year || 'VOD')}</span>
+    <span>${esc(item.source || item.group || '')}</span>
+    <span>${item.type === 'live' ? 'En directo' : 'A la carta'}</span>`;
+  $('heroDesc').textContent = item.desc || '';
+  $('heroPlayBtn').onclick = () => openPlayer(item);
+  $('heroInfoBtn').onclick = () => openModal(item);
+  const bg = $('heroBg');
+  if (item.logo) {
+    bg.style.backgroundImage = `url('${item.logo}')`;
+  } else {
+    bg.style.background = `linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%)`;
+  }
+  $('heroDots').innerHTML = state.heroItems.map((_, i) =>
+    `<button class="hero-dot ${i === state.heroIndex ? 'active' : ''}" onclick="setHero(${i})"></button>`
+  ).join('');
+}
+
+function setHero(i) {
+  state.heroIndex = i;
+  renderHero();
+  restartHeroTimer();
+}
+
+function restartHeroTimer() {
+  clearInterval(state.heroTimer);
+  state.heroTimer = setInterval(() => {
+    state.heroIndex = (state.heroIndex + 1) % state.heroItems.length;
+    renderHero();
+  }, 8000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BÚSQUEDA
+   ═══════════════════════════════════════════════════════════ */
+
+function performSearch(q) {
+  state.searchQuery = q.toLowerCase().trim();
+  if (!state.searchQuery) {
+    $('searchResults').classList.add('hidden');
+    showHome();
+    return;
+  }
+  $('favoritesPage').classList.add('hidden');
+  $('mainContent').style.display = 'none';
+  $('hero').style.display = 'none';
+
+  const results = state.allContent.filter((i) =>
+    i.title.toLowerCase().includes(state.searchQuery) ||
+    (i.group || '').toLowerCase().includes(state.searchQuery) ||
+    (i.section || '').toLowerCase().includes(state.searchQuery) ||
+    (i.source || '').toLowerCase().includes(state.searchQuery)
+  );
+
+  $('searchResults').classList.remove('hidden');
+  $('searchTitle').textContent = `Resultados para "${q}"`;
+  $('searchCount').textContent = `${results.length} elemento${results.length !== 1 ? 's' : ''} encontrado${results.length !== 1 ? 's' : ''}`;
+
+  if (!results.length) {
+    $('searchRow').innerHTML = `
+      <div class="no-results" style="width:100%">
+        <div class="no-results-icon">🔍</div>
+        <p>No se encontraron resultados para tu búsqueda.</p>
+      </div>`;
+  } else {
+    $('searchRow').innerHTML = results.map(cardHTML).join('');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FAVORITOS
+   ═══════════════════════════════════════════════════════════ */
+
+function toggleFav(id) {
+  const item = state.allContent.find((i) => i.id === id);
+  if (!item) return;
+  const idx = state.favorites.findIndex((f) => f.id === id);
+  if (idx >= 0) {
+    state.favorites.splice(idx, 1);
+    showToast('💔 Eliminado de favoritos');
+  } else {
+    state.favorites.push(item);
+    showToast('❤️ Añadido a favoritos');
+  }
+  localStorage.setItem('nova_favs', JSON.stringify(state.favorites));
+  updateFavBadge();
+  document.querySelectorAll(`.card[data-id="${id}"] .card-fav`).forEach((b) => {
+    b.classList.toggle('active', isFav(id));
+    b.textContent = isFav(id) ? '❤️' : '🤍';
+  });
+  if (!$('favoritesPage').classList.contains('hidden')) renderFavorites();
+  if (!$('modalOverlay').classList.contains('active')) return;
+  updateModalFavBtn(item);
+}
+
+function updateFavBadge() {
+  $('favBadge').textContent = state.favorites.length;
+}
+
+function showFavorites() {
+  $('searchResults').classList.add('hidden');
+  $('mainContent').style.display = 'none';
+  $('hero').style.display = 'none';
+  $('favoritesPage').classList.remove('hidden');
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const grid = $('favGrid');
+  $('favCount').textContent = `${state.favorites.length} elemento${state.favorites.length !== 1 ? 's' : ''} guardado${state.favorites.length !== 1 ? 's' : ''}`;
+  if (!state.favorites.length) {
+    grid.innerHTML = `
+      <div class="no-results" style="grid-column:1/-1">
+        <div class="no-results-icon">💔</div>
+        <p>No tienes favoritos aún.<br>Explora el catálogo y toca el corazón en cualquier contenido.</p>
+      </div>`;
+    return;
+  }
+  grid.innerHTML = state.favorites.map(cardHTML).join('');
+}
+
+function showHome() {
+  $('searchResults').classList.add('hidden');
+  $('favoritesPage').classList.add('hidden');
+  $('mainContent').style.display = '';
+  $('hero').style.display = '';
+  $('searchInput').value = '';
+  state.searchQuery = '';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL INFO
+   ═══════════════════════════════════════════════════════════ */
+
+let modalItem = null;
+
+function openModal(item) {
+  modalItem = item;
+  $('modalBanner').innerHTML = item.logo
+    ? `<img class="modal-banner" src="${esc(item.logo)}" onerror="this.outerHTML='<div class=modal-banner placeholder>${item.emoji||'📺'}</div>'">`
+    : `<div class="modal-banner placeholder">${item.emoji || '📺'}</div>`;
+  $('modalTitle').textContent = item.title;
+  $('modalMeta').innerHTML = `
+    <span style="color:var(--gold)">★ ${item.type === 'live' ? 'TV EN VIVO' : (item.year || 'VOD')}</span>
+    <span>${esc(item.group || '')}</span>
+    <span>${esc(item.source || '')}</span>`;
+  $('modalDesc').textContent = item.desc || 'Sin descripción disponible.';
+  $('modalUrl').textContent = item.url;
+  $('modalPlayBtn').onclick = () => { closeModal(); openPlayer(item); };
+  updateModalFavBtn(item);
+  $('modalOverlay').classList.add('active');
+}
+
+function updateModalFavBtn(item) {
+  $('modalFavBtn').textContent = isFav(item.id) ? '💔 Quitar Favorito' : '❤️ Favorito';
+  $('modalFavBtn').onclick = () => toggleFav(item.id);
+}
+
+function closeModal() {
+  $('modalOverlay').classList.remove('active');
+  modalItem = null;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REPRODUCTOR — NÚCLEO
+   ═══════════════════════════════════════════════════════════ */
+
+const video = $('videoPlayer');
+
+function openPlayerById(id) {
+  const item = state.allContent.find((i) => i.id === id);
+  if (item) openPlayer(item);
+}
+
+function openPlayer(item) {
+  state.currentPlaying = item;
+  $('playerTitle').textContent = item.title;
+  $('playerOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  $('playerError').classList.remove('active');
+  $('playerLoading').style.display = 'flex';
+  hideMenus();
+
+  $('playPauseBtn').textContent = '▶';
+  $('progressFill').style.width = '0%';
+  $('timeCurrent').textContent = '0:00';
+  $('timeDuration').textContent = item.type === 'live' ? 'EN VIVO' : '0:00';
+  $('qualityLabel').style.display = 'none';
+
+  initAudioGraph();
+  loadStream(item.url);
+  scheduleHideUI();
+}
+
+function closePlayer() {
+  if (state.hls) { state.hls.destroy(); state.hls = null; }
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  $('playerOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  state.currentPlaying = null;
+  if (document.fullscreenElement) document.exitFullscreen();
+  hideMenus();
+}
+
+function loadStream(url) {
+  if (state.hls) { state.hls.destroy(); state.hls = null; }
+
+  const isHLS = url.includes('.m3u8');
+  const isMP4 = url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i);
+
+  if (isHLS && Hls.isSupported()) {
+    state.hls = new Hls({
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      liveSyncDurationCount: 3,
+      enableWorker: true,
+      lowLatencyMode: true,
+      backBufferLength: 30,
+      abrEwmaDefaultEstimate: 500000,
+      abrBandWidthFactor: 0.95,
+      startLevel: -1,
+    });
+    state.hls.loadSource(url);
+    state.hls.attachMedia(video);
+
+    state.hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+      $('playerLoading').style.display = 'none';
+      buildQualityMenu(data.levels);
+      video.play().catch(() => {});
+    });
+
+    state.hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+      const lvl = state.hls.levels[data.level];
+      if (lvl) $('qualityLabel').textContent = `${lvl.height}p`;
+    });
+
+    state.hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_, data) => {
+      buildAudioMenu(data.audioTracks || []);
+    });
+
+    state.hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_, data) => {
+      buildSubsMenu(data.subtitleTracks || []);
+    });
+
+    state.hls.on(Hls.Events.ERROR, (_, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            showPlayerError('Error de red. Verifica tu conexión o intenta con otro canal.');
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            state.hls.recoverMediaError();
+            break;
+          default:
+            showPlayerError('No se pudo reproducir este stream. Es posible que el canal esté fuera de línea o bloqueado por CORS.');
+        }
+      }
+    });
+
+  } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => {
+      $('playerLoading').style.display = 'none';
+      video.play().catch(() => {});
+    }, { once: true });
+    video.addEventListener('error', () => showPlayerError('Error al cargar el stream.'), { once: true });
+
+  } else if (isMP4 || !isHLS) {
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => {
+      $('playerLoading').style.display = 'none';
+      video.play().catch(() => {});
+    }, { once: true });
+    video.addEventListener('error', () => showPlayerError('Error al cargar el video.'), { once: true });
+  }
+
+  video.addEventListener('loadedmetadata', () => {
+    if (video.audioTracks && video.audioTracks.length > 1) {
+      buildAudioMenuNative(video.audioTracks);
+    }
+    if (video.textTracks && video.textTracks.length > 0) {
+      buildSubsMenuNative(video.textTracks);
+    }
+  }, { once: true });
+}
+
+function showPlayerError(msg) {
+  $('playerLoading').style.display = 'none';
+  $('playerErrorText').textContent = msg;
+  $('playerError').classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WEB AUDIO API — AMPLIFICACIÓN 500%
+   ═══════════════════════════════════════════════════════════ */
+
+function initAudioGraph() {
+  if (state.audioCtx) return;
+  try {
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    state.sourceNode = state.audioCtx.createMediaElementSource(video);
+    state.gainNode = state.audioCtx.createGain();
+    state.compressor = state.audioCtx.createDynamicsCompressor();
+
+    state.compressor.threshold.value = -12;
+    state.compressor.knee.value = 20;
+    state.compressor.ratio.value = 12;
+    state.compressor.attack.value = 0.003;
+    state.compressor.release.value = 0.25;
+
+    state.sourceNode.connect(state.gainNode);
+    state.gainNode.connect(state.compressor);
+    state.compressor.connect(state.audioCtx.destination);
+  } catch (e) {
+    console.warn('Web Audio API no disponible:', e);
+  }
+}
+
+function setVolume(pct) {
+  const val = Math.min(500, Math.max(0, pct));
+  $('volumeSlider').value = val;
+  $('volumePct').textContent = val + '%';
+
+  if (state.gainNode) {
+    state.gainNode.gain.value = val / 100;
+  } else {
+    video.volume = Math.min(1, val / 100);
+  }
+
+  state.isBoosted = val > 100;
+  $('volumeWrap').classList.toggle('boosted', state.isBoosted);
+  $('volumeIcon').textContent = val === 0 ? '🔇' : val < 50 ? '🔉' : val <= 100 ? '🔊' : '🔊⚡';
+  $('muteBtn').textContent = val === 0 ? '🔇' : '🔊';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MENÚS DE CALIDAD / AUDIO / SUBTÍTULOS
+   ═══════════════════════════════════════════════════════════ */
+
+function hideMenus() {
+  document.querySelectorAll('.ctrl-menu').forEach((m) => m.classList.remove('open'));
+  state.activeMenu = null;
+}
+
+function toggleMenu(menuId) {
+  const menu = $(menuId);
+  const wasOpen = menu.classList.contains('open');
+  hideMenus();
+  if (!wasOpen) {
+    menu.classList.add('open');
+    state.activeMenu = menuId;
+  }
+}
+
+function buildQualityMenu(levels) {
+  if (!levels || levels.length <= 1) return;
+  $('qualityLabel').style.display = '';
+  const menu = $('qualityMenu');
+  let html = '<div class="ctrl-menu-title">Calidad</div>';
+  html += `<button class="menu-item active" data-q="-1" onclick="setQuality(-1)">⚡ Auto (Recomendado)<span class="check">✓</span></button>`;
+  levels.forEach((lvl, i) => {
+    const label = lvl.height ? `${lvl.height}p (${Math.round(lvl.bitrate / 1000)} kbps)` : `Nivel ${i}`;
+    html += `<button class="menu-item" data-q="${i}" onclick="setQuality(${i})">${label}<span class="check"></span></button>`;
+  });
+  menu.innerHTML = html;
+}
+
+function setQuality(idx) {
+  if (state.hls) state.hls.currentLevel = idx;
+  document.querySelectorAll('#qualityMenu .menu-item').forEach((b) => {
+    b.classList.toggle('active', parseInt(b.dataset.q) === idx);
+    b.querySelector('.check').textContent = parseInt(b.dataset.q) === idx ? '✓' : '';
+  });
+  $('qualityLabel').textContent = idx === -1 ? 'AUTO' : state.hls.levels[idx]?.height + 'p';
+  hideMenus();
+}
+
+function buildAudioMenu(tracks) {
+  if (!tracks || !tracks.length) return;
+  const menu = $('audioMenu');
+  let html = '<div class="ctrl-menu-title">Pistas de Audio</div>';
+  tracks.forEach((t, i) => {
+    const label = t.name || t.lang || `Audio ${i + 1}`;
+    html += `<button class="menu-item ${i === 0 ? 'active' : ''}" onclick="setAudioTrack(${i})">${esc(label)}<span class="check">${i === 0 ? '✓' : ''}</span></button>`;
+  });
+  menu.innerHTML = html;
+}
+
+function setAudioTrack(idx) {
+  if (state.hls) state.hls.audioTrack = idx;
+  document.querySelectorAll('#audioMenu .menu-item').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+    b.querySelector('.check').textContent = i === idx ? '✓' : '';
+  });
+  hideMenus();
+}
+
+function buildAudioMenuNative(audioTracks) {
+  const menu = $('audioMenu');
+  let html = '<div class="ctrl-menu-title">Pistas de Audio</div>';
+  for (let i = 0; i < audioTracks.length; i++) {
+    const label = audioTracks[i].label || audioTracks[i].language || `Audio ${i + 1}`;
+    html += `<button class="menu-item ${audioTracks[i].enabled ? 'active' : ''}" onclick="setAudioTrackNative(${i})">${esc(label)}<span class="check">${audioTracks[i].enabled ? '✓' : ''}</span></button>`;
+  }
+  menu.innerHTML = html;
+}
+
+function setAudioTrackNative(idx) {
+  if (video.audioTracks) {
+    for (let i = 0; i < video.audioTracks.length; i++) {
+      video.audioTracks[i].enabled = i === idx;
+    }
+  }
+  hideMenus();
+}
+
+function buildSubsMenu(tracks) {
+  if (!tracks || !tracks.length) return;
+  const menu = $('subsMenu');
+  let html = '<div class="ctrl-menu-title">Subtítulos</div>';
+  html += `<button class="menu-item active" onclick="setSubtitle(-1)">Desactivados<span class="check">✓</span></button>`;
+  tracks.forEach((t, i) => {
+    const label = t.name || t.lang || `Subtítulo ${i + 1}`;
+    html += `<button class="menu-item" onclick="setSubtitle(${i})">${esc(label)}<span class="check"></span></button>`;
+  });
+  menu.innerHTML = html;
+}
+
+function setSubtitle(idx) {
+  if (state.hls) state.hls.subtitleTrack = idx;
+  document.querySelectorAll('#subsMenu .menu-item').forEach((b, i) => {
+    b.classList.toggle('active', i === idx + 1);
+    b.querySelector('.check').textContent = i === idx + 1 ? '✓' : '';
+  });
+  hideMenus();
+}
+
+function buildSubsMenuNative(textTracks) {
+  const subs = [];
+  for (let i = 0; i < textTracks.length; i++) {
+    if (textTracks[i].kind === 'subtitles' || textTracks[i].kind === 'captions') subs.push(i);
+  }
+  if (!subs.length) return;
+  const menu = $('subsMenu');
+  let html = '<div class="ctrl-menu-title">Subtítulos</div>';
+  html += `<button class="menu-item active" onclick="setSubtitleNative(-1)">Desactivados<span class="check">✓</span></button>`;
+  subs.forEach((idx) => {
+    const label = textTracks[idx].label || textTracks[idx].language || `Sub ${idx}`;
+    html += `<button class="menu-item" onclick="setSubtitleNative(${idx})">${esc(label)}<span class="check"></span></button>`;
+  });
+  menu.innerHTML = html;
+}
+
+function setSubtitleNative(idx) {
+  if (video.textTracks) {
+    for (let i = 0; i < video.textTracks.length; i++) {
+      video.textTracks[i].mode = i === idx ? 'showing' : 'hidden';
+    }
+  }
+  hideMenus();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTROLES DEL REPRODUCTOR
+   ═══════════════════════════════════════════════════════════ */
+
+function togglePlay() {
+  if (video.paused) { video.play(); } else { video.pause(); }
+}
+
+function toggleMute() {
+  video.muted = !video.muted;
+  $('muteBtn').textContent = video.muted ? '🔇' : '🔊';
+  $('volumeIcon').textContent = video.muted ? '🔇' : '🔊';
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    $('playerContainer').requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function formatTime(s) {
+  if (!isFinite(s)) return '0:00';
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = Math.floor(s % 60);
+  return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}` : `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function scheduleHideUI() {
+  clearTimeout(state.hideUITimer);
+  $('playerOverlay').classList.remove('hide-ui');
+  state.hideUITimer = setTimeout(() => {
+    if (!video.paused && !state.activeMenu) {
+      $('playerOverlay').classList.add('hide-ui');
+    }
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════════════════════════ */
+
+video.addEventListener('play', () => { $('playPauseBtn').textContent = '⏸'; scheduleHideUI(); });
+video.addEventListener('pause', () => { $('playPauseBtn').textContent = '▶'; clearTimeout(state.hideUITimer); $('playerOverlay').classList.remove('hide-ui'); });
+video.addEventListener('timeupdate', () => {
+  if (video.duration && isFinite(video.duration)) {
+    const pct = (video.currentTime / video.duration) * 100;
+    $('progressFill').style.width = pct + '%';
+    $('timeCurrent').textContent = formatTime(video.currentTime);
+    $('timeDuration').textContent = formatTime(video.duration);
+  }
+});
+video.addEventListener('click', () => { togglePlay(); scheduleHideUI(); });
+video.addEventListener('dblclick', () => toggleFullscreen());
+video.addEventListener('waiting', () => { $('playerLoading').style.display = 'flex'; });
+video.addEventListener('playing', () => { $('playerLoading').style.display = 'none'; });
+
+$('progressBar').addEventListener('click', (e) => {
+  if (!video.duration || !isFinite(video.duration)) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  video.currentTime = pct * video.duration;
+  scheduleHideUI();
+});
+
+$('playPauseBtn').addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); scheduleHideUI(); });
+$('muteBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMute(); scheduleHideUI(); });
+$('fullscreenBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); scheduleHideUI(); });
+$('settingsBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu('qualityMenu'); });
+$('audioBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu('audioMenu'); });
+$('subsBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu('subsMenu'); });
+$('volumeSlider').addEventListener('input', (e) => { setVolume(parseInt(e.target.value)); scheduleHideUI(); });
+$('volumeIcon').addEventListener('click', () => { setVolume(0); scheduleHideUI(); });
+
+$('playerContainer').addEventListener('mousemove', scheduleHideUI);
+$('playerContainer').addEventListener('touchstart', scheduleHideUI);
+
+document.addEventListener('keydown', (e) => {
+  if (!$('playerOverlay').classList.contains('active')) {
+    if (e.key === '/' || (e.key === 'f' && document.activeElement.tagName !== 'INPUT')) {
+      e.preventDefault();
+      $('searchInput').focus();
+    }
+    return;
+  }
+  switch (e.key) {
+    case ' ': case 'k': e.preventDefault(); togglePlay(); scheduleHideUI(); break;
+    case 'f': case 'F': toggleFullscreen(); break;
+    case 'm': case 'M': toggleMute(); break;
+    case 'Escape': if (!document.fullscreenElement) closePlayer(); break;
+    case 'ArrowRight': video.currentTime += 10; scheduleHideUI(); break;
+    case 'ArrowLeft': video.currentTime -= 10; scheduleHideUI(); break;
+    case 'ArrowUp': e.preventDefault(); setVolume(parseInt($('volumeSlider').value) + 10); scheduleHideUI(); break;
+    case 'ArrowDown': e.preventDefault(); setVolume(parseInt($('volumeSlider').value) - 10); scheduleHideUI(); break;
+  }
+});
+
+let searchTimeout;
+$('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => performSearch(e.target.value), 300);
+});
+
+$('modalOverlay').addEventListener('click', (e) => { if (e.target === $('modalOverlay')) closeModal(); });
+
+window.addEventListener('scroll', () => {
+  $('navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.ctrl-menu') && !e.target.closest('.ctrl-btn')) hideMenus();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INICIALIZACIÓN
+   ═══════════════════════════════════════════════════════════ */
+
+async function init() {
+  updateFavBadge();
+  setVolume(100);
+
+  await loadAllSources();
+
+  if (!state.allContent.length) {
+    $('mainContent').innerHTML = `
+      <div class="no-results" style="padding:100px 24px">
+        <div class="no-results-icon">📡</div>
+        <p>No se pudieron cargar las fuentes. Verifica tu conexión a internet.</p>
+      </div>`;
+    return;
+  }
+
+  renderHome();
+  pickHeroItems();
+  renderHero();
+  restartHeroTimer();
+}
+
+init();
+</script>
+</body>
+</html>
